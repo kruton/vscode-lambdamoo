@@ -204,5 +204,14 @@ jobs:
           allow-no-subscriptions: true
           enable-AzPSSession: true
 
+      - name: Show Marketplace identity ID
+        run: |
+          marketplace_identity_id="$(az rest \
+            --url https://app.vssps.visualstudio.com/_apis/profile/profiles/me \
+            --resource 499b84ac-1321-427f-aa17-267ca6975798 \
+            --query id \
+            --output tsv)"
+          echo "Marketplace identity ID: ${marketplace_identity_id}"
+
       - name: Publish platform packages
         run: npm exec -- vsce publish --azure-credential --packagePath dist/*.vsix
