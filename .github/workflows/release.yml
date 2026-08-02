@@ -172,6 +172,7 @@ jobs:
       - package
       - github-release
     runs-on: ubuntu-26.04
+    environment: marketplace
     permissions:
       contents: read
       id-token: write
@@ -195,5 +196,13 @@ jobs:
           path: dist
           merge-multiple: true
 
+      - name: Sign in to Azure with workload identity federation
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+          enable-AzPSSession: true
+
       - name: Publish platform packages
-        run: npm exec -- vsce publish --oidc --packagePath dist/*.vsix
+        run: npm exec -- vsce publish --azure-credential --packagePath dist/*.vsix
