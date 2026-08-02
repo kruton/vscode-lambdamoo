@@ -1,0 +1,122 @@
+{
+  "name": "vscode-lambdamoo",
+  "displayName": "LambdaMOO Language Support",
+  "description": "Rich LambdaMOO development support powered by Tree-sitter and moo-lsp-rs.",
+  "version": "0.1.0",
+  "publisher": "kruton",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kruton/vscode-lambdamoo.git"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "keywords": [
+    "lambdamoo",
+    "moo",
+    "lsp",
+    "tree-sitter"
+  ],
+  "activationEvents": [
+    "onLanguage:lambdamoo"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configurationDefaults": {
+      "[lambdamoo]": {
+        "editor.defaultFormatter": "kruton.vscode-lambdamoo",
+        "editor.semanticHighlighting.enabled": true
+      }
+    },
+    "configuration": {
+      "title": "LambdaMOO",
+      "properties": {
+        "lambdamoo.server.path": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "description": "Path to the moo-lsp-rs executable. Leave empty to use an adjacent ../moo-lsp-rs development build or a bundled server when release artifacts become available."
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "lambdamoo",
+        "aliases": [
+          "LambdaMOO",
+          "moo"
+        ],
+        "extensions": [
+          ".moo"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "lambdamoo",
+        "scopeName": "source.lambdamoo",
+        "path": "./syntaxes/lambdamoo.tmLanguage.json"
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "lambdamoo",
+        "scopes": {
+          "variable": [
+            "variable.other.readwrite.lambdamoo"
+          ],
+          "property": [
+            "variable.other.property.lambdamoo"
+          ],
+          "function": [
+            "entity.name.function.lambdamoo"
+          ],
+          "method": [
+            "entity.name.function.member.lambdamoo"
+          ],
+          "keyword": [
+            "keyword.control.lambdamoo"
+          ],
+          "comment": [
+            "comment.block.lambdamoo"
+          ],
+          "string": [
+            "string.quoted.double.lambdamoo"
+          ],
+          "number": [
+            "constant.numeric.lambdamoo"
+          ],
+          "operator": [
+            "keyword.operator.lambdamoo"
+          ],
+          "enumMember": [
+            "constant.language.error.lambdamoo"
+          ]
+        }
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build:server": "cargo build --manifest-path ../moo-lsp-rs/Cargo.toml",
+    "build:server:release": "cargo build --release --manifest-path ../moo-lsp-rs/Cargo.toml",
+    "check": "npm run compile && cargo test --manifest-path ../moo-lsp-rs/Cargo.toml"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@types/vscode": "1.90.0",
+    "@vscode/vsce": "3.9.3-4",
+    "typescript": "^7.0.2"
+  }
+}

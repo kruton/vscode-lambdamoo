@@ -1,0 +1,132 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "LambdaMOO",
+  "scopeName": "source.lambdamoo",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#keywords" },
+    { "include": "#constants" },
+    { "include": "#calls" },
+    { "include": "#operators" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.lambdamoo",
+          "begin": "/\\*",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.comment.begin.lambdamoo" }
+          },
+          "end": "\\*/",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.comment.end.lambdamoo" }
+          }
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.lambdamoo",
+          "begin": "\"",
+          "beginCaptures": {
+            "0": { "name": "punctuation.definition.string.begin.lambdamoo" }
+          },
+          "end": "\"",
+          "endCaptures": {
+            "0": { "name": "punctuation.definition.string.end.lambdamoo" }
+          },
+          "patterns": [
+            {
+              "name": "constant.character.escape.lambdamoo",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.lambdamoo",
+          "match": "(?i)\\b(?:if|elseif|else|endif|for|endfor|while|endwhile|fork|endfork|break|continue|return|try|except|finally|endtry)\\b"
+        },
+        {
+          "name": "keyword.operator.word.lambdamoo",
+          "match": "(?i)\\bin\\b"
+        }
+      ]
+    },
+    "constants": {
+      "patterns": [
+        {
+          "name": "constant.language.error.lambdamoo",
+          "match": "(?i)\\bE_(?:NONE|TYPE|DIV|PERM|PROPNF|VERBNF|VARNF|INVIND|RECMOVE|MAXREC|RANGE|ARGS|NACC|INVARG|QUOTA|FLOAT)\\b"
+        },
+        {
+          "name": "constant.language.any.lambdamoo",
+          "match": "(?i)\\bANY\\b"
+        },
+        {
+          "name": "constant.other.object.lambdamoo",
+          "match": "#-?[0-9]+\\b"
+        }
+      ]
+    },
+    "calls": {
+      "patterns": [
+        {
+          "match": "(?i)(\\$)([a-z_][a-z0-9_]*)(?=\\s*\\()",
+          "captures": {
+            "1": { "name": "punctuation.definition.variable.lambdamoo" },
+            "2": { "name": "entity.name.function.verb.lambdamoo" }
+          }
+        },
+        {
+          "match": "(?i)(:)([a-z_][a-z0-9_]*)(?=\\s*\\()",
+          "captures": {
+            "1": { "name": "punctuation.accessor.lambdamoo" },
+            "2": { "name": "entity.name.function.verb.lambdamoo" }
+          }
+        },
+        {
+          "name": "entity.name.function.lambdamoo",
+          "match": "(?i)\\b[a-z_][a-z0-9_]*(?=\\s*\\()"
+        },
+        {
+          "match": "(?i)(\\$)([a-z_][a-z0-9_]*)",
+          "captures": {
+            "1": { "name": "punctuation.definition.variable.lambdamoo" },
+            "2": { "name": "variable.other.property.system.lambdamoo" }
+          }
+        },
+        {
+          "match": "(?i)(\\.)([a-z_][a-z0-9_]*)",
+          "captures": {
+            "1": { "name": "punctuation.accessor.lambdamoo" },
+            "2": { "name": "variable.other.property.lambdamoo" }
+          }
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.lambdamoo",
+          "match": "(?:>>>|>>|<<|==|!=|<=|>=|\\|\\.|\\^\\.|&\\.|&&|\\|\\||\\.\\.|=>|[=<>+\\-*/%^!~?:@|&])"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.lambdamoo",
+          "match": "(?<![A-Za-z0-9_])(?:[0-9]+(?:\\.[0-9]+)?)(?![A-Za-z0-9_])"
+        }
+      ]
+    }
+  }
+}

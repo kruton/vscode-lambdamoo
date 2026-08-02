@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "target": "ES2022",
+    "outDir": "out",
+    "lib": ["ES2022"],
+    "types": ["node", "vscode"],
+    "sourceMap": true,
+    "strict": true,
+    "rootDir": "src"
+  },
+  "include": ["src/**/*"]
+}
