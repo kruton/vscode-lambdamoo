@@ -1,8 +1,8 @@
 {
   "name": "vscode-lambdamoo",
   "displayName": "LambdaMOO Language Support",
-  "description": "Rich LambdaMOO development support powered by Tree-sitter and moo-lsp-rs.",
-  "version": "0.1.0",
+  "description": "LambdaMOO code development support package",
+  "version": "0.1.1",
   "publisher": "kruton",
   "license": "MIT",
   "repository": {
