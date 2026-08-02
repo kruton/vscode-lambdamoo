@@ -1,0 +1,196 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  MOO_LSP_REPOSITORY: kruton/moo-lsp-rs
+  MOO_LSP_VERSION: v0.1.2
+
+jobs:
+  package:
+    name: Package ${{ matrix.target }}
+    runs-on: ubuntu-24.04
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: linux-x64
+            archive: moo-lsp-rs-linux-x64.tar.gz
+            executable: moo-lsp-rs
+          - target: linux-arm64
+            archive: moo-lsp-rs-linux-arm64.tar.gz
+            executable: moo-lsp-rs
+          - target: linux-armhf
+            archive: moo-lsp-rs-linux-armhf.tar.gz
+            executable: moo-lsp-rs
+          - target: alpine-x64
+            archive: moo-lsp-rs-alpine-x64.tar.gz
+            executable: moo-lsp-rs
+          - target: alpine-arm64
+            archive: moo-lsp-rs-alpine-arm64.tar.gz
+            executable: moo-lsp-rs
+          - target: darwin-x64
+            archive: moo-lsp-rs-darwin-x64.tar.gz
+            executable: moo-lsp-rs
+          - target: darwin-arm64
+            archive: moo-lsp-rs-darwin-arm64.tar.gz
+            executable: moo-lsp-rs
+          - target: win32-x64
+            archive: moo-lsp-rs-win32-x64.zip
+            executable: moo-lsp-rs.exe
+          - target: win32-arm64
+            archive: moo-lsp-rs-win32-arm64.zip
+            executable: moo-lsp-rs.exe
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Require tag to match extension version
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+          test "v${package_version}" = "${GITHUB_REF_NAME}"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download server and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "${RUNNER_TEMP}/moo-lsp-release"
+          gh release download "${MOO_LSP_VERSION}" \
+            --repo "${MOO_LSP_REPOSITORY}" \
+            --pattern "${{ matrix.archive }}" \
+            --pattern SHA256SUMS \
+            --dir "${RUNNER_TEMP}/moo-lsp-release"
+
+      - name: Verify server checksum and build provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: ${{ runner.temp }}/moo-lsp-release
+        run: |
+          grep "  ${{ matrix.archive }}$" SHA256SUMS | sha256sum --check --strict -
+          gh attestation verify "${{ matrix.archive }}" --repo "${MOO_LSP_REPOSITORY}"
+
+      - name: Install server binary
+        run: |
+          mkdir -p bin "${RUNNER_TEMP}/moo-lsp-extracted"
+          case "${{ matrix.archive }}" in
+            *.zip)
+              unzip -q "${RUNNER_TEMP}/moo-lsp-release/${{ matrix.archive }}" \
+                -d "${RUNNER_TEMP}/moo-lsp-extracted"
+              ;;
+            *)
+              tar -xzf "${RUNNER_TEMP}/moo-lsp-release/${{ matrix.archive }}" \
+                -C "${RUNNER_TEMP}/moo-lsp-extracted"
+              ;;
+          esac
+          install -m 0755 \
+            "${RUNNER_TEMP}/moo-lsp-extracted/${{ matrix.target }}/${{ matrix.executable }}" \
+            "bin/${{ matrix.executable }}"
+
+      - name: Compile extension
+        run: npm run compile
+
+      - name: Package platform VSIX
+        run: |
+          mkdir -p dist
+          npm exec -- vsce package \
+            --target "${{ matrix.target }}" \
+            --out "dist/vscode-lambdamoo-${GITHUB_REF_NAME}-${{ matrix.target }}.vsix"
+
+      - name: Attest packaged server binary
+        uses: actions/attest@v4
+        with:
+          subject-path: bin/${{ matrix.executable }}
+
+      - name: Attest VSIX
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/*.vsix
+
+      - name: Upload VSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-${{ matrix.target }}
+          path: dist/*.vsix
+          if-no-files-found: error
+
+  github-release:
+    name: Publish GitHub release
+    needs: package
+    runs-on: ubuntu-24.04
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    steps:
+      - name: Download VSIX packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vsix-*
+          path: dist
+          merge-multiple: true
+
+      - name: Create checksums
+        working-directory: dist
+        run: sha256sum *.vsix > SHA256SUMS
+
+      - name: Attest checksums
+        uses: actions/attest@v4
+        with:
+          subject-path: dist/SHA256SUMS
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/* --verify-tag --generate-notes
+
+  marketplace:
+    name: Publish Visual Studio Marketplace packages
+    needs:
+      - package
+      - github-release
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download VSIX packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vsix-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publish platform packages
+        run: npm exec -- vsce publish --oidc --packagePath dist/*.vsix

@@ -1,0 +1,15 @@
+.agents/**
+.codex/**
+.github/**
+.vscode/**
+.gitignore
+src/**
+AGENTS.md
+package-lock.json
+tsconfig.json
+*.vsix
+!bin/**
+!language-configuration.json
+!out/**
+!package.json
+!syntaxes/**
