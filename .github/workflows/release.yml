@@ -215,3 +215,37 @@ jobs:
 
       - name: Publish platform packages
         run: npm exec -- vsce publish --azure-credential --packagePath dist/*.vsix
+
+  open-vsx:
+    name: Publish Open VSX packages
+    needs:
+      - package
+      - github-release
+    runs-on: ubuntu-26.04
+    environment: marketplace
+    permissions:
+      contents: read
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Download VSIX packages
+        uses: actions/download-artifact@v4
+        with:
+          pattern: vsix-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publish platform packages
+        env:
+          OPEN_VSX_PAT: ${{ secrets.OPEN_VSX_PAT }}
+        run: npm exec -- ovsx --pat "${OPEN_VSX_PAT}" publish --packagePath dist/*.vsix

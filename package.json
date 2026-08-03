@@ -117,6 +117,7 @@
     "@types/node": "^26.1.2",
     "@types/vscode": "1.90.0",
     "@vscode/vsce": "3.9.2",
+    "ovsx": "1.1.0",
     "typescript": "^7.0.2"
   }
 }
