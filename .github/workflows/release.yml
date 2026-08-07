@@ -202,7 +202,7 @@ jobs:
           merge-multiple: true
 
       - name: Sign in to Azure with workload identity federation
-        uses: azure/login@858f4093d287a904987dfd22abd163280f939550 # v3.0.1
+        uses: azure/login@f5d393ae46f8fde4be8b75f32e3fc50e654ad0ca # v3.0.1
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
