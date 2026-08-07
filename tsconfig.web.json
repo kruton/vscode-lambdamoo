@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2022",
+    "lib": ["ES2022", "WebWorker"],
+    "types": ["vscode"],
+    "strict": true
+  },
+  "include": ["src/webExtension.ts", "src/wasmLsp.ts"]
+}

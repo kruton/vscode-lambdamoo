@@ -7,23 +7,6 @@
       "script": "compile",
       "problemMatcher": "$tsc",
       "group": "build"
-    },
-    {
-      "label": "build language server",
-      "type": "npm",
-      "script": "build:server",
-      "problemMatcher": "$rustc",
-      "group": "build"
-    },
-    {
-      "label": "build all",
-      "dependsOrder": "parallel",
-      "dependsOn": ["build extension", "build language server"],
-      "problemMatcher": [],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
     }
   ]
 }

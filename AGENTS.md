@@ -11,11 +11,11 @@ Place extension source in `src/`, with `src/extension.ts` as the expected activa
 - `npm install` installs dependencies exactly as described by `package-lock.json`.
 - `npm run compile` type-checks strict TypeScript and emits the extension into `out/`.
 - `npm run watch` recompiles continuously during development.
-- `npm run build:server` builds the adjacent `../moo-lsp-rs` debug binary.
-- `npm run check` compiles the extension and runs the Rust server tests.
+- `npm run compile:web` type-checks and bundles the browser extension.
+- `npm run check` compiles both the desktop and browser extensions.
 - `npm run vscode:prepublish` performs the production prepublish compile.
 
-There is currently no extension test runner or lint script. Add the corresponding `package.json` scripts when introducing either capability. For manual validation, open the project in VS Code and press `F5`; the launch task builds both repositories before starting an Extension Development Host.
+There is currently no extension test runner or lint script. Add the corresponding `package.json` scripts when introducing either capability. For manual validation, set `lambdamoo.server.path` to a local development server when needed, open the project in VS Code, and press `F5`; the launch task builds the extension before starting an Extension Development Host.
 
 ## Coding Style & Naming Conventions
 

@@ -10,12 +10,13 @@ permissions:
 
 env:
   MOO_LSP_REPOSITORY: kruton/moo-lsp-rs
-  MOO_LSP_VERSION: v0.1.2
+  # renovate: datasource=github-releases depName=kruton/moo-lsp-rs
+  MOO_LSP_VERSION: v0.2.0
 
 jobs:
   package:
     name: Package ${{ matrix.target }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     permissions:
       attestations: write
       contents: read
@@ -51,20 +52,23 @@ jobs:
           - target: win32-arm64
             archive: moo-lsp-rs-win32-arm64.zip
             executable: moo-lsp-rs.exe
+          - target: web
+            archive: moo-lsp-rs-web.tar.gz
+            executable: moo-lsp-rs.wasm
 
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Require tag to match extension version
         run: |
-          package_version="$(node -p "require('./package.json').version")"
+          package_version="$(npm pkg get version | tr -d '\"')"
           test "v${package_version}" = "${GITHUB_REF_NAME}"
 
       - name: Install dependencies
@@ -107,27 +111,28 @@ jobs:
             "bin/${{ matrix.executable }}"
 
       - name: Compile extension
-        run: npm run compile
+        run: npm run compile && npm run package:web
 
       - name: Package platform VSIX
         run: |
           mkdir -p dist
           npm exec -- vsce package \
+            --no-dependencies \
             --target "${{ matrix.target }}" \
             --out "dist/vscode-lambdamoo-${GITHUB_REF_NAME}-${{ matrix.target }}.vsix"
 
       - name: Attest packaged server binary
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: bin/${{ matrix.executable }}
 
       - name: Attest VSIX
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: dist/*.vsix
 
       - name: Upload VSIX
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: vsix-${{ matrix.target }}
           path: dist/*.vsix
@@ -136,17 +141,17 @@ jobs:
   github-release:
     name: Publish GitHub release
     needs: package
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     permissions:
       attestations: write
       contents: write
       id-token: write
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download VSIX packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: vsix-*
           path: dist
@@ -157,7 +162,7 @@ jobs:
         run: sha256sum *.vsix > SHA256SUMS
 
       - name: Attest checksums
-        uses: actions/attest@v4
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: dist/SHA256SUMS
 
@@ -171,33 +176,33 @@ jobs:
     needs:
       - package
       - github-release
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     environment: marketplace
     permissions:
       contents: read
       id-token: write
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Download VSIX packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: vsix-*
           path: dist
           merge-multiple: true
 
       - name: Sign in to Azure with workload identity federation
-        uses: azure/login@v3
+        uses: azure/login@858f4093d287a904987dfd22abd163280f939550 # v3.0.1
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
@@ -221,25 +226,25 @@ jobs:
     needs:
       - package
       - github-release
-    runs-on: ubuntu-26.04
+    runs-on: ubuntu-latest
     environment: marketplace
     permissions:
       contents: read
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Download VSIX packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           pattern: vsix-*
           path: dist

@@ -26,6 +26,17 @@
     "onLanguage:lambdamoo"
   ],
   "main": "./out/extension.js",
+  "browser": "./out/web/extension.js",
+  "files": [
+    "bin/**",
+    "LICENSE",
+    "language-configuration.json",
+    "out/**/*.js",
+    "syntaxes/**"
+  ],
+  "extensionDependencies": [
+    "ms-vscode.wasm-wasi-core"
+  ],
   "contributes": {
     "configurationDefaults": {
       "[lambdamoo]": {
@@ -40,7 +51,7 @@
           "type": "string",
           "default": "",
           "scope": "machine",
-          "description": "Path to the moo-lsp-rs executable. Leave empty to use an adjacent ../moo-lsp-rs development build or a bundled server when release artifacts become available."
+          "description": "Path to a development build of the moo-lsp-rs executable. Leave empty to use the server bundled with the extension."
         }
       }
     },
@@ -103,25 +114,33 @@
     ]
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "build:server": "cargo build --manifest-path ../moo-lsp-rs/Cargo.toml",
-    "build:server:release": "cargo build --release --manifest-path ../moo-lsp-rs/Cargo.toml",
-    "check": "npm run compile && cargo test --manifest-path ../moo-lsp-rs/Cargo.toml"
+    "vscode:prepublish": "npm run package:desktop && npm run package:web",
+    "compile": "tsc --noEmit -p ./ && node esbuild.mjs --desktop",
+    "compile:test": "tsc -p tsconfig.test.json",
+    "package:desktop": "tsc --noEmit -p ./ && node esbuild.mjs --desktop --production",
+    "compile:web": "tsc --noEmit -p tsconfig.web.json && node esbuild.mjs",
+    "package:web": "tsc --noEmit -p tsconfig.web.json && node esbuild.mjs --production",
+    "watch:web": "node esbuild.mjs --watch",
+    "watch": "node esbuild.mjs --desktop --watch",
+    "check": "npm run compile && npm run compile:web && npm run compile:test",
+    "test": "npm run compile:test && node .test-out/runTest.js"
   },
   "dependencies": {
+    "@vscode/wasm-wasi": "^1.0.1",
     "vscode-languageclient": "^10.1.0"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
     "@types/vscode": "1.90.0",
+    "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "3.9.2",
+    "esbuild": "^0.28.1",
     "ovsx": "1.1.0",
     "typescript": "^7.0.2"
   },
   "allowScripts": {
     "keytar@7.9.0": true,
-    "@vscode/vsce-sign@2.0.9": true
+    "@vscode/vsce-sign@2.0.9": true,
+    "esbuild@0.28.1": true
   }
 }
