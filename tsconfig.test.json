@@ -2,12 +2,11 @@
   "compilerOptions": {
     "module": "NodeNext",
     "target": "ES2022",
-    "outDir": "out",
+    "outDir": ".test-out",
     "lib": ["ES2022"],
     "types": ["node", "vscode"],
-    "sourceMap": true,
     "strict": true,
-    "rootDir": "src"
+    "rootDir": "test"
   },
-  "include": ["src/extension.ts"]
+  "include": ["test/**/*.ts"]
 }

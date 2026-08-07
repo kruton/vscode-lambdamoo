@@ -9,24 +9,60 @@ on:
 permissions:
   contents: read
 
+env:
+  MOO_LSP_REPOSITORY: kruton/moo-lsp-rs
+  # renovate: datasource=github-releases depName=kruton/moo-lsp-rs
+  MOO_LSP_VERSION: v0.2.0
+
 jobs:
   check:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Compile extension
-        run: npm run compile
+      - name: Download server and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "${RUNNER_TEMP}/moo-lsp-release"
+          gh release download "${MOO_LSP_VERSION}" \
+            --repo "${MOO_LSP_REPOSITORY}" \
+            --pattern moo-lsp-rs-linux-x64.tar.gz \
+            --pattern SHA256SUMS \
+            --dir "${RUNNER_TEMP}/moo-lsp-release"
+
+      - name: Verify server checksum and build provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: ${{ runner.temp }}/moo-lsp-release
+        run: |
+          grep "  moo-lsp-rs-linux-x64.tar.gz$" SHA256SUMS | sha256sum --check --strict -
+          gh attestation verify moo-lsp-rs-linux-x64.tar.gz --repo "${MOO_LSP_REPOSITORY}"
+
+      - name: Install server binary
+        run: |
+          mkdir -p bin "${RUNNER_TEMP}/moo-lsp-extracted"
+          tar -xzf "${RUNNER_TEMP}/moo-lsp-release/moo-lsp-rs-linux-x64.tar.gz" \
+            -C "${RUNNER_TEMP}/moo-lsp-extracted"
+          install -m 0755 \
+            "${RUNNER_TEMP}/moo-lsp-extracted/linux-x64/moo-lsp-rs" \
+            bin/moo-lsp-rs
+
+      - name: Check extension
+        run: npm run check
+
+      - name: Test bundled language server
+        run: xvfb-run -a npm test
 
       - name: Validate extension package
-        run: npm exec -- vsce ls
+        run: npm exec -- vsce ls --no-dependencies

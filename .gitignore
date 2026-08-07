@@ -1,5 +1,7 @@
 node_modules/
 out/
+.test-out/
+.vscode-test/
 .DS_Store
 npm-debug.log
 Thumbs.db

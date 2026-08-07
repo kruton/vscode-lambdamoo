@@ -28,11 +28,7 @@ function findServer(context: vscode.ExtensionContext): string | undefined {
 
   const candidates = configuredPath
     ? [resolveConfiguredPath(configuredPath)]
-    : [
-      path.join(context.extensionPath, "bin", executableName()),
-      path.resolve(context.extensionPath, "..", "moo-lsp-rs", "target", "debug", executableName()),
-      path.resolve(context.extensionPath, "..", "moo-lsp-rs", "target", "release", executableName()),
-    ];
+    : [path.join(context.extensionPath, "bin", executableName())];
 
   return candidates.find((candidate) => fs.existsSync(candidate));
 }
@@ -41,7 +37,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const command = findServer(context);
   if (!command) {
     void vscode.window.showErrorMessage(
-      "LambdaMOO language server was not found. Run 'npm run build:server' or set lambdamoo.server.path.",
+      "LambdaMOO language server was not found. Set lambdamoo.server.path to a development build.",
     );
     return;
   }
