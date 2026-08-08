@@ -12,7 +12,7 @@ permissions:
 env:
   MOO_LSP_REPOSITORY: kruton/moo-lsp-rs
   # renovate: datasource=github-releases depName=kruton/moo-lsp-rs
-  MOO_LSP_VERSION: v0.2.0
+  MOO_LSP_VERSION: v0.2.2
 
 jobs:
   check:
