@@ -8,11 +8,6 @@ on:
 permissions:
   contents: read
 
-env:
-  MOO_LSP_REPOSITORY: kruton/moo-lsp-rs
-  # renovate: datasource=github-releases depName=kruton/moo-lsp-rs
-  MOO_LSP_VERSION: v0.2.2
-
 jobs:
   package:
     name: Package ${{ matrix.target }}
@@ -74,41 +69,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Download server and checksums
+      - name: Sync language server binary
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          mkdir -p "${RUNNER_TEMP}/moo-lsp-release"
-          gh release download "${MOO_LSP_VERSION}" \
-            --repo "${MOO_LSP_REPOSITORY}" \
-            --pattern "${{ matrix.archive }}" \
-            --pattern SHA256SUMS \
-            --dir "${RUNNER_TEMP}/moo-lsp-release"
-
-      - name: Verify server checksum and build provenance
-        env:
-          GH_TOKEN: ${{ github.token }}
-        working-directory: ${{ runner.temp }}/moo-lsp-release
-        run: |
-          grep "  ${{ matrix.archive }}$" SHA256SUMS | sha256sum --check --strict -
-          gh attestation verify "${{ matrix.archive }}" --repo "${MOO_LSP_REPOSITORY}"
-
-      - name: Install server binary
-        run: |
-          mkdir -p bin "${RUNNER_TEMP}/moo-lsp-extracted"
-          case "${{ matrix.archive }}" in
-            *.zip)
-              unzip -q "${RUNNER_TEMP}/moo-lsp-release/${{ matrix.archive }}" \
-                -d "${RUNNER_TEMP}/moo-lsp-extracted"
-              ;;
-            *)
-              tar -xzf "${RUNNER_TEMP}/moo-lsp-release/${{ matrix.archive }}" \
-                -C "${RUNNER_TEMP}/moo-lsp-extracted"
-              ;;
-          esac
-          install -m 0755 \
-            "${RUNNER_TEMP}/moo-lsp-extracted/${{ matrix.target }}/${{ matrix.executable }}" \
-            "bin/${{ matrix.executable }}"
+        run: npm run sync:lsp -- --target ${{ matrix.target }}
 
       - name: Compile extension
         run: npm run compile && npm run package:web

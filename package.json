@@ -115,6 +115,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run package:desktop && npm run package:web",
+    "sync:lsp": "node --experimental-strip-types scripts/sync-lsp.ts",
     "compile": "tsc --noEmit -p ./ && node esbuild.mjs --desktop",
     "compile:test": "tsc -p tsconfig.test.json",
     "package:desktop": "tsc --noEmit -p ./ && node esbuild.mjs --desktop --production",
