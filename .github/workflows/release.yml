@@ -227,7 +227,7 @@ jobs:
       - package
       - github-release
     runs-on: ubuntu-latest
-    environment: marketplace
+    environment: open-vsx
     permissions:
       contents: read
     steps:
