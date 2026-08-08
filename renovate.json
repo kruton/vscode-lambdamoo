@@ -6,8 +6,8 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "^lsp-artifact\\.json$"
+      "managerFilePatterns": [
+        "/^lsp-artifact\\.json$/"
       ],
       "matchStrings": [
         "\"repository\": \"(?<depName>[^\"]+)\",\\s*\"version\": \"(?<currentValue>[^\"]+)\""
