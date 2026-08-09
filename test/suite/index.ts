@@ -15,4 +15,31 @@ export async function run(): Promise<void> {
 
   assert.equal(extension.isActive, true);
   assert.equal(document.languageId, "lambdamoo");
+
+  const commentDocument = await vscode.workspace.openTextDocument({
+    language: "lambdamoo",
+    content: "  notify(player, \"Hello!\");\nnot a wrapped string;\n  \"indented string\";\n",
+  });
+  const editor = await vscode.window.showTextDocument(commentDocument);
+
+  editor.selection = new vscode.Selection(0, 0, 0, 0);
+  await vscode.commands.executeCommand("lambdamoo.toggleLineComment");
+  assert.equal(commentDocument.lineAt(0).text, '  "notify(player, \\"Hello!\\");";');
+
+  await vscode.commands.executeCommand("lambdamoo.toggleLineComment");
+  assert.equal(commentDocument.lineAt(0).text, '  notify(player, "Hello!");');
+
+  editor.selection = new vscode.Selection(0, 0, 2, 0);
+  await vscode.commands.executeCommand("lambdamoo.toggleBlockComment");
+  assert.equal(commentDocument.lineAt(0).text, '  "notify(player, \\"Hello!\\");";');
+  assert.equal(commentDocument.lineAt(1).text, '"not a wrapped string;";');
+
+  editor.selection = new vscode.Selection(0, 0, 2, 0);
+  await vscode.commands.executeCommand("lambdamoo.toggleBlockComment");
+  assert.equal(commentDocument.lineAt(0).text, '  notify(player, "Hello!");');
+  assert.equal(commentDocument.lineAt(1).text, "not a wrapped string;");
+
+  editor.selection = new vscode.Selection(2, 0, 2, 0);
+  await vscode.commands.executeCommand("lambdamoo.toggleLineComment");
+  assert.equal(commentDocument.lineAt(2).text, "  indented string");
 }

@@ -6,6 +6,7 @@ import {
   ServerOptions,
 } from "vscode-languageclient/browser";
 import { createStdioOptions, startServer } from "./wasmLsp";
+import { registerCommentCommands } from "./comments";
 
 let client: LanguageClient | undefined;
 
@@ -56,6 +57,8 @@ function uriConverters(): NonNullable<LanguageClientOptions["uriConverters"]> {
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  registerCommentCommands(context);
+
   const wasm = await Wasm.load();
   const outputChannel = vscode.window.createOutputChannel(
     "LambdaMOO Language Server",

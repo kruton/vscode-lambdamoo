@@ -6,6 +6,7 @@ import {
   LanguageClientOptions,
   ServerOptions,
 } from "vscode-languageclient/node";
+import { registerCommentCommands } from "./comments";
 
 let client: LanguageClient | undefined;
 
@@ -34,6 +35,8 @@ function findServer(context: vscode.ExtensionContext): string | undefined {
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  registerCommentCommands(context);
+
   const command = findServer(context);
   if (!command) {
     void vscode.window.showErrorMessage(
