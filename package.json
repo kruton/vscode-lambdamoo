@@ -38,6 +38,31 @@
     "ms-vscode.wasm-wasi-core"
   ],
   "contributes": {
+    "commands": [
+      {
+        "command": "lambdamoo.toggleLineComment",
+        "title": "Toggle Line Comment",
+        "category": "LambdaMOO"
+      },
+      {
+        "command": "lambdamoo.toggleBlockComment",
+        "title": "Toggle Block Comment",
+        "category": "LambdaMOO"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "lambdamoo.toggleLineComment",
+        "key": "ctrl+/",
+        "mac": "cmd+/",
+        "when": "editorTextFocus && editorLangId == lambdamoo"
+      },
+      {
+        "command": "lambdamoo.toggleBlockComment",
+        "key": "shift+alt+a",
+        "when": "editorTextFocus && editorLangId == lambdamoo"
+      }
+    ],
     "configurationDefaults": {
       "[lambdamoo]": {
         "editor.defaultFormatter": "kruton.vscode-lambdamoo",
