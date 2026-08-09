@@ -36,6 +36,16 @@ function findServer(context: vscode.ExtensionContext): string | undefined {
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   registerCommentCommands(context);
+  context.subscriptions.push(
+    vscode.commands.registerCommand("lambdamoo.restartLanguageServer", async () => {
+      if (!client) {
+        void vscode.window.showErrorMessage("LambdaMOO language server is not running.");
+        return;
+      }
+      await client.stop();
+      await client.start();
+    }),
+  );
 
   const command = findServer(context);
   if (!command) {

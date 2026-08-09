@@ -15,6 +15,10 @@ export async function run(): Promise<void> {
 
   assert.equal(extension.isActive, true);
   assert.equal(document.languageId, "lambdamoo");
+  assert.ok(
+    (await vscode.commands.getCommands(true)).includes("lambdamoo.restartLanguageServer"),
+    "Restart language server command is registered",
+  );
 
   const commentDocument = await vscode.workspace.openTextDocument({
     language: "lambdamoo",
