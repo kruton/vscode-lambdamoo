@@ -58,6 +58,16 @@ function uriConverters(): NonNullable<LanguageClientOptions["uriConverters"]> {
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   registerCommentCommands(context);
+  context.subscriptions.push(
+    vscode.commands.registerCommand("lambdamoo.restartLanguageServer", async () => {
+      if (!client) {
+        void vscode.window.showErrorMessage("LambdaMOO language server is not running.");
+        return;
+      }
+      await client.stop();
+      await client.start();
+    }),
+  );
 
   const wasm = await Wasm.load();
   const outputChannel = vscode.window.createOutputChannel(

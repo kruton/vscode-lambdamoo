@@ -48,6 +48,11 @@
         "command": "lambdamoo.toggleBlockComment",
         "title": "Toggle Block Comment",
         "category": "LambdaMOO"
+      },
+      {
+        "command": "lambdamoo.restartLanguageServer",
+        "title": "Restart Language Server",
+        "category": "LambdaMOO"
       }
     ],
     "keybindings": [
