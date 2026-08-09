@@ -116,6 +116,7 @@
   "scripts": {
     "vscode:prepublish": "npm run package:desktop && npm run package:web",
     "sync:lsp": "node --experimental-strip-types scripts/sync-lsp.ts",
+    "sync:lsp:dev": "npm run sync:lsp -- --from-dir ../moo-lsp-rs",
     "compile": "tsc --noEmit -p ./ && node esbuild.mjs --desktop",
     "compile:test": "tsc -p tsconfig.test.json",
     "package:desktop": "tsc --noEmit -p ./ && node esbuild.mjs --desktop --production",
@@ -142,6 +143,6 @@
   "allowScripts": {
     "keytar@7.9.0": true,
     "@vscode/vsce-sign@2.0.9": true,
-    "esbuild@0.28.1": true
+    "esbuild@0.28.2": true
   }
 }
