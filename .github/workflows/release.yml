@@ -9,8 +9,44 @@ permissions:
   contents: read
 
 jobs:
+  verify:
+    name: Verify release metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Verify package lock and release tag
+        shell: bash
+        run: |
+          package_version="$(jq --raw-output '.version' package.json)"
+          lock_version="$(jq --raw-output '.version' package-lock.json)"
+          lock_package_version="$(jq --raw-output '.packages[""].version' package-lock.json)"
+
+          if [[ -z "${package_version}" || "${package_version}" == "null" ]]; then
+            echo "Could not determine the extension version from package.json" >&2
+            exit 1
+          fi
+
+          if [[ "${lock_version}" != "${package_version}" ]]; then
+            echo "package-lock.json version ${lock_version:-<missing>} does not match package.json version ${package_version}; run npm install to update package-lock.json" >&2
+            exit 1
+          fi
+
+          if [[ "${lock_package_version}" != "${package_version}" ]]; then
+            echo "package-lock.json root package version ${lock_package_version:-<missing>} does not match package.json version ${package_version}; run npm install to update package-lock.json" >&2
+            exit 1
+          fi
+
+          expected_tag="v${package_version}"
+          if [[ "${GITHUB_REF_NAME}" != "${expected_tag}" ]]; then
+            echo "Release tag ${GITHUB_REF_NAME} does not match package.json version ${package_version}; expected ${expected_tag}" >&2
+            exit 1
+          fi
+
   package:
     name: Package ${{ matrix.target }}
+    needs: verify
     runs-on: ubuntu-latest
     permissions:
       attestations: write
@@ -60,11 +96,6 @@ jobs:
         with:
           node-version: 24
           cache: npm
-
-      - name: Require tag to match extension version
-        run: |
-          package_version="$(npm pkg get version | tr -d '\"')"
-          test "v${package_version}" = "${GITHUB_REF_NAME}"
 
       - name: Install dependencies
         run: npm ci
