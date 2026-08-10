@@ -125,7 +125,7 @@
             "keyword.control.lambdamoo"
           ],
           "comment": [
-            "comment.block.lambdamoo"
+            "comment.line.string.lambdamoo"
           ],
           "string": [
             "string.quoted.double.lambdamoo"
