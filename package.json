@@ -23,7 +23,7 @@
     "tree-sitter"
   ],
   "activationEvents": [
-    "onLanguage:lambdamoo"
+    "onFileSystem:moo"
   ],
   "main": "./out/extension.js",
   "browser": "./out/web/extension.js",
@@ -52,6 +52,16 @@
       {
         "command": "lambdamoo.restartLanguageServer",
         "title": "Restart Language Server",
+        "category": "LambdaMOO"
+      },
+      {
+        "command": "lambdamoo.openRemote",
+        "title": "Open Remote MOO",
+        "category": "LambdaMOO"
+      },
+      {
+        "command": "lambdamoo.manageRemoteConnections",
+        "title": "Manage Remote MOO Connections",
         "category": "LambdaMOO"
       }
     ],
@@ -82,6 +92,52 @@
           "default": "",
           "scope": "machine",
           "description": "Path to a development build of the moo-lsp-rs executable. Leave empty to use the server bundled with the extension."
+        },
+        "lambdamoo.webdav.cacheTtlMs": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 0,
+          "scope": "window",
+          "description": "How long WebDAV directory and metadata results remain cached in milliseconds. Set to 0 to disable completed-result caching while retaining request coalescing."
+        },
+        "lambdamoo.connections": {
+          "type": "array",
+          "default": [],
+          "scope": "application",
+          "description": "Remote MOO connection profiles. Passwords are stored separately in VS Code's encrypted secret storage.",
+          "items": {
+            "type": "object",
+            "required": [
+              "authority",
+              "adapter",
+              "endpoint"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "authority": {
+                "type": "string",
+                "pattern": "^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$",
+                "description": "Unique lowercase authority used in moo:// URIs."
+              },
+              "adapter": {
+                "type": "string",
+                "enum": [
+                  "webdav"
+                ],
+                "description": "Transport adapter. Only WebDAV is currently supported."
+              },
+              "endpoint": {
+                "type": "string",
+                "format": "uri",
+                "pattern": "^https?://",
+                "description": "HTTP or HTTPS WebDAV URL prefix."
+              },
+              "username": {
+                "type": "string",
+                "description": "WebDAV username. Leave empty for anonymous access."
+              }
+            }
+          }
         }
       }
     },
@@ -148,18 +204,21 @@
     "sync:lsp": "node --experimental-strip-types scripts/sync-lsp.ts",
     "sync:lsp:dev": "npm run sync:lsp -- --from-dir ../moo-lsp-rs",
     "compile": "tsc --noEmit -p ./ && node esbuild.mjs --desktop",
-    "compile:test": "tsc -p tsconfig.test.json",
+    "compile:test": "node -e \"require('node:fs').rmSync('.test-out',{recursive:true,force:true})\" && tsc -p tsconfig.test.json",
     "package:desktop": "tsc --noEmit -p ./ && node esbuild.mjs --desktop --production",
     "compile:web": "tsc --noEmit -p tsconfig.web.json && node esbuild.mjs",
     "package:web": "tsc --noEmit -p tsconfig.web.json && node esbuild.mjs --production",
     "watch:web": "node esbuild.mjs --watch",
     "watch": "node esbuild.mjs --desktop --watch",
     "check": "npm run compile && npm run compile:web && npm run compile:test",
-    "test": "npm run compile:test && node .test-out/runTest.js"
+    "test": "npm run compile:test && npm run test:unit && npm run test:extension",
+    "test:unit": "node --test .test-out/test/unit/remoteFileSystemLogic.test.js",
+    "test:extension": "node .test-out/test/runTest.js"
   },
   "dependencies": {
     "@vscode/wasm-wasi": "^1.0.1",
-    "vscode-languageclient": "^10.1.0"
+    "vscode-languageclient": "^10.1.0",
+    "webdav": "^5.10.0"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",

@@ -7,6 +7,8 @@ import {
   ServerOptions,
 } from "vscode-languageclient/node";
 import { registerCommentCommands } from "./comments";
+import { registerRemoteFileSystem } from "./remoteFileSystem";
+import { resolveDefinitionResult } from "./remoteNavigation";
 
 let client: LanguageClient | undefined;
 
@@ -36,6 +38,7 @@ function findServer(context: vscode.ExtensionContext): string | undefined {
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   registerCommentCommands(context);
+  const remoteFileSystem = registerRemoteFileSystem(context);
   context.subscriptions.push(
     vscode.commands.registerCommand("lambdamoo.restartLanguageServer", async () => {
       if (!client) {
@@ -57,9 +60,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   const serverOptions: ServerOptions = { command };
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: "file", language: "lambdamoo" }],
+    documentSelector: [
+      { scheme: "file", language: "lambdamoo" },
+      { scheme: "moo" },
+    ],
     synchronize: {
       fileEvents: vscode.workspace.createFileSystemWatcher("**/*.moo"),
+    },
+    middleware: {
+      provideDefinition: async (document, position, token, next) => resolveDefinitionResult(
+        remoteFileSystem,
+        await next(document, position, token),
+      ),
     },
   };
 

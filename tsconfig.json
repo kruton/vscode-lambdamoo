@@ -9,5 +9,5 @@
     "strict": true,
     "rootDir": "src"
   },
-  "include": ["src/extension.ts"]
+  "include": ["src/extension.ts", "src/remoteFileSystem.ts"]
 }
