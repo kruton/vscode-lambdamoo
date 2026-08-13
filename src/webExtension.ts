@@ -7,6 +7,8 @@ import {
 } from "vscode-languageclient/browser";
 import { createStdioOptions, startServer } from "./wasmLsp";
 import { registerCommentCommands } from "./comments";
+import { registerRemoteFileSystem } from "./remoteFileSystem";
+import { resolveDefinitionResult } from "./remoteNavigation";
 
 let client: LanguageClient | undefined;
 
@@ -58,6 +60,7 @@ function uriConverters(): NonNullable<LanguageClientOptions["uriConverters"]> {
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   registerCommentCommands(context);
+  const remoteFileSystem = registerRemoteFileSystem(context);
   context.subscriptions.push(
     vscode.commands.registerCommand("lambdamoo.restartLanguageServer", async () => {
       if (!client) {
@@ -96,9 +99,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   };
 
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ language: "lambdamoo" }],
+    documentSelector: [
+      { language: "lambdamoo" },
+      { scheme: "moo" },
+    ],
     outputChannel,
     uriConverters: uriConverters(),
+    middleware: {
+      provideDefinition: async (document, position, token, next) => resolveDefinitionResult(
+        remoteFileSystem,
+        await next(document, position, token),
+      ),
+    },
   };
 
   client = new LanguageClient(

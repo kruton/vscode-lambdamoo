@@ -19,6 +19,14 @@ export async function run(): Promise<void> {
     (await vscode.commands.getCommands(true)).includes("lambdamoo.restartLanguageServer"),
     "Restart language server command is registered",
   );
+  assert.ok(
+    (await vscode.commands.getCommands(true)).includes("lambdamoo.openRemote"),
+    "Open remote MOO command is registered",
+  );
+  assert.ok(
+    (await vscode.commands.getCommands(true)).includes("lambdamoo.manageRemoteConnections"),
+    "Manage remote MOO connections command is registered",
+  );
 
   const commentDocument = await vscode.workspace.openTextDocument({
     language: "lambdamoo",
