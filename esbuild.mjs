@@ -1,10 +1,31 @@
 import * as esbuild from "esbuild";
-import { copyFile, mkdir } from "node:fs/promises";
+import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 const production = process.argv.includes("--production");
 const watch = process.argv.includes("--watch");
 const desktop = process.argv.includes("--desktop");
+
+const browserWasmPlugin = {
+  name: "moo-lsp-browser-wasm",
+  setup(build) {
+    build.onLoad({ filter: /@kruton[\\/]moo-lsp[\\/]browser\.js$/ }, async (args) => {
+      const source = await readFile(args.path, "utf8");
+      const wasmUrl = 'new URL("./raw/moo_lsp_rs_bg.wasm", import.meta.url)';
+      if (!source.includes(wasmUrl)) {
+        throw new Error("Could not locate the @kruton/moo-lsp browser WASM URL");
+      }
+      return {
+        contents: [
+          'import wasmBytes from "./raw/moo_lsp_rs_bg.wasm";',
+          source.replace(wasmUrl, "wasmBytes"),
+        ].join("\n"),
+        loader: "js",
+        resolveDir: dirname(args.path),
+      };
+    });
+  },
+};
 
 async function main() {
   const outfile = desktop ? "out/extension.js" : "out/web/extension.js";
@@ -16,6 +37,8 @@ async function main() {
     target: "es2022",
     outfile,
     external: ["vscode"],
+    loader: { ".wasm": "binary" },
+    plugins: desktop ? [] : [browserWasmPlugin],
     banner: desktop
       ? { js: "const __mooLspImportMetaUrl = require('node:url').pathToFileURL(__filename).href;" }
       : undefined,

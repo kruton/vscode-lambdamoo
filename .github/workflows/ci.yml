@@ -9,9 +9,6 @@ on:
 permissions:
   contents: read
 
-env:
-  GH_TOKEN: ${{ github.token }}
-
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -27,9 +24,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Sync language server
-        run: npm run sync:lsp
 
       - name: Check extension
         run: npm run check

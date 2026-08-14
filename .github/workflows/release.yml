@@ -65,11 +65,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Sync browser language server
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: npm run sync:lsp
-
       - name: Compile extension
         run: npm run compile && npm run package:web
 
