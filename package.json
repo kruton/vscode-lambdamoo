@@ -28,10 +28,11 @@
   "main": "./out/extension.js",
   "browser": "./out/web/extension.js",
   "files": [
-    "bin/**",
+    "bin/moo-lsp-rs.wasm",
     "LICENSE",
     "language-configuration.json",
     "out/**/*.js",
+    "out/**/*.wasm",
     "syntaxes/**"
   ],
   "extensionDependencies": [
@@ -87,12 +88,6 @@
     "configuration": {
       "title": "LambdaMOO",
       "properties": {
-        "lambdamoo.server.path": {
-          "type": "string",
-          "default": "",
-          "scope": "machine",
-          "description": "Path to a development build of the moo-lsp-rs executable. Leave empty to use the server bundled with the extension."
-        },
         "lambdamoo.webdav.cacheTtlMs": {
           "type": "number",
           "default": 5000,
@@ -216,8 +211,10 @@
     "test:extension": "node .test-out/test/runTest.js"
   },
   "dependencies": {
+    "@kruton/moo-lsp": "^0.2.12",
     "@vscode/wasm-wasi": "^1.0.1",
     "vscode-languageclient": "^10.1.0",
+    "vscode-jsonrpc": "^9.0.1",
     "webdav": "^5.10.0"
   },
   "devDependencies": {
