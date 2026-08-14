@@ -1,5 +1,3 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
 import * as vscode from "vscode";
 import {
   LanguageClient,
@@ -7,34 +5,11 @@ import {
   ServerOptions,
 } from "vscode-languageclient/node";
 import { registerCommentCommands } from "./comments";
+import { createInProcessServer } from "./inProcessLsp";
 import { registerRemoteFileSystem } from "./remoteFileSystem";
 import { resolveDefinitionResult } from "./remoteNavigation";
 
 let client: LanguageClient | undefined;
-
-function executableName(): string {
-  return process.platform === "win32" ? "moo-lsp-rs.exe" : "moo-lsp-rs";
-}
-
-function resolveConfiguredPath(configuredPath: string): string {
-  const expanded = configuredPath.replace(/^~(?=$|[\\/])/, process.env.HOME ?? "~");
-  return path.isAbsolute(expanded)
-    ? expanded
-    : path.resolve(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? process.cwd(), expanded);
-}
-
-function findServer(context: vscode.ExtensionContext): string | undefined {
-  const configuredPath = vscode.workspace
-    .getConfiguration("lambdamoo")
-    .get<string>("server.path", "")
-    .trim();
-
-  const candidates = configuredPath
-    ? [resolveConfiguredPath(configuredPath)]
-    : [path.join(context.extensionPath, "bin", executableName())];
-
-  return candidates.find((candidate) => fs.existsSync(candidate));
-}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   registerCommentCommands(context);
@@ -50,15 +25,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }),
   );
 
-  const command = findServer(context);
-  if (!command) {
-    void vscode.window.showErrorMessage(
-      "LambdaMOO language server was not found. Set lambdamoo.server.path to a development build.",
-    );
-    return;
-  }
-
-  const serverOptions: ServerOptions = { command };
+  const serverOptions: ServerOptions = createInProcessServer;
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
       { scheme: "file", language: "lambdamoo" },
