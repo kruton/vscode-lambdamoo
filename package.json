@@ -28,15 +28,11 @@
   "main": "./out/extension.js",
   "browser": "./out/web/extension.js",
   "files": [
-    "bin/moo-lsp-rs.wasm",
     "LICENSE",
     "language-configuration.json",
     "out/**/*.js",
     "out/**/*.wasm",
     "syntaxes/**"
-  ],
-  "extensionDependencies": [
-    "ms-vscode.wasm-wasi-core"
   ],
   "contributes": {
     "commands": [
@@ -196,8 +192,6 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run package:desktop && npm run package:web",
-    "sync:lsp": "node --experimental-strip-types scripts/sync-lsp.ts",
-    "sync:lsp:dev": "npm run sync:lsp -- --from-dir ../moo-lsp-rs",
     "compile": "tsc --noEmit -p ./ && node esbuild.mjs --desktop",
     "compile:test": "node -e \"require('node:fs').rmSync('.test-out',{recursive:true,force:true})\" && tsc -p tsconfig.test.json",
     "package:desktop": "tsc --noEmit -p ./ && node esbuild.mjs --desktop --production",
@@ -212,7 +206,6 @@
   },
   "dependencies": {
     "@kruton/moo-lsp": "^0.2.12",
-    "@vscode/wasm-wasi": "^1.0.1",
     "vscode-languageclient": "^10.1.0",
     "vscode-jsonrpc": "^9.0.1",
     "webdav": "^5.10.0"

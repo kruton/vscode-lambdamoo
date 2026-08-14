@@ -5,8 +5,7 @@ import {
   DataCallback,
   Disposable,
   Message,
-} from "vscode-jsonrpc/node";
-import { MessageTransports } from "vscode-languageclient/node";
+} from "vscode-jsonrpc";
 
 class InProcessMessageReader extends AbstractMessageReader {
   private callback: DataCallback | undefined;
@@ -62,7 +61,10 @@ class InProcessMessageWriter extends AbstractMessageWriter {
   }
 }
 
-export async function createInProcessServer(): Promise<MessageTransports> {
+export async function createInProcessServer(): Promise<{
+  reader: InProcessMessageReader;
+  writer: InProcessMessageWriter;
+}> {
   const server = await createLanguageServer();
   const reader = new InProcessMessageReader();
   const writer = new InProcessMessageWriter(server, reader);
