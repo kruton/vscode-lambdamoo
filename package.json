@@ -2,7 +2,7 @@
   "name": "vscode-lambdamoo",
   "displayName": "LambdaMOO Language Support",
   "description": "LambdaMOO code development support package",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "publisher": "kruton",
   "license": "MIT",
   "repository": {
