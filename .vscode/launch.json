@@ -7,7 +7,6 @@
       "request": "launch",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "outFiles": ["${workspaceFolder}/out/**/*.js"],
-      "experimentalNetworking": "off",
       "preLaunchTask": "build extension"
     }
   ]
