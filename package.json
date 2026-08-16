@@ -78,7 +78,8 @@
     "configurationDefaults": {
       "[lambdamoo]": {
         "editor.defaultFormatter": "kruton.vscode-lambdamoo",
-        "editor.semanticHighlighting.enabled": true
+        "editor.semanticHighlighting.enabled": true,
+        "editor.colorDecorators": false
       }
     },
     "configuration": {
@@ -201,7 +202,7 @@
     "watch": "node esbuild.mjs --desktop --watch",
     "check": "npm run compile && npm run compile:web && npm run compile:test",
     "test": "npm run compile:test && npm run test:unit && npm run test:extension",
-    "test:unit": "node --test .test-out/test/unit/remoteFileSystemLogic.test.js",
+    "test:unit": "node --test .test-out/test/unit/*.test.js",
     "test:extension": "node .test-out/test/runTest.js"
   },
   "dependencies": {
