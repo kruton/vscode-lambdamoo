@@ -417,8 +417,9 @@ export class LambdaMooFileSystem implements vscode.FileSystemProvider {
         this.stats.set(identity.key, stat, this.cacheTtlMs());
       }
     }
-    if (stat.etag) {
-      this.etags.set(uri.toString(), stat.etag);
+    const etag = normalizeEtag(stat.etag);
+    if (etag) {
+      this.etags.set(uri.toString(), etag);
     } else {
       this.etags.delete(uri.toString());
     }
