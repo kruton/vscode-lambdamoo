@@ -85,11 +85,23 @@ test("detaches invalidated in-flight requests without cancelling their callers",
   assert.equal(await oldRequest, "old");
 });
 
-test("identifies VS Code workspace metadata paths", () => {
+test("identifies local workspace metadata paths", () => {
   assert.equal(isEditorMetadataPath("/.vscode"), true);
   assert.equal(isEditorMetadataPath("/.vscode/tasks.json"), true);
   assert.equal(isEditorMetadataPath("/.vscode/settings.json"), true);
+  assert.equal(isEditorMetadataPath("/.agents/skills"), true);
+  assert.equal(isEditorMetadataPath("/.claude/agents"), true);
+  assert.equal(isEditorMetadataPath("/.claude/settings.json"), true);
+  assert.equal(isEditorMetadataPath("/.devcontainer"), true);
+  assert.equal(isEditorMetadataPath("/.devcontainer.json"), true);
+  assert.equal(isEditorMetadataPath("/.git/config"), true);
+  assert.equal(isEditorMetadataPath("/.github/copilot/settings.json"), true);
+  assert.equal(isEditorMetadataPath("/.mcp.json"), true);
+  assert.equal(isEditorMetadataPath("/app/src/main/AndroidManifest.xml"), true);
+  assert.equal(isEditorMetadataPath("/node_modules"), true);
+  assert.equal(isEditorMetadataPath("/pom.xml"), true);
   assert.equal(isEditorMetadataPath("/object/454/verb/.vscode"), false);
+  assert.equal(isEditorMetadataPath("/object/454/verb/look"), false);
   assert.equal(isEditorMetadataPath("/.vscode-backup/tasks.json"), false);
 });
 
