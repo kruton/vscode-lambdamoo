@@ -4,6 +4,20 @@ export type PreconditionContext =
 
 export type PreconditionFailure = "remoteChanged" | "fileExists" | "preconditionFailed";
 
+export function normalizeEtag(value: string | null | undefined): string | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+  if (/^(?:W\/)?"[^"\r\n]*"$/.test(trimmed)) {
+    return trimmed;
+  }
+  if (trimmed.startsWith("W/")) {
+    return `W/"${trimmed.slice(2).replace(/"/g, "")}"`;
+  }
+  return `"${trimmed.replace(/"/g, "")}"`;
+}
+
 export function classifyPreconditionFailure(context: PreconditionContext): PreconditionFailure {
   if (context.kind === "write" && context.exists && context.overwrite && context.etag) {
     return "remoteChanged";
