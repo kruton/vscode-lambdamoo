@@ -22,6 +22,14 @@ const connectionsSetting = "connections";
 
 type AdapterKind = "webdav";
 
+function formatLogDetails(details: unknown): string {
+  try {
+    return JSON.stringify(details);
+  } catch {
+    return "[unserializable details]";
+  }
+}
+
 export function preconditionFailedError(
   uri: vscode.Uri,
   context: PreconditionContext,
@@ -238,6 +246,7 @@ async function promptForProfile(authority?: string, current?: ConnectionProfile)
 }
 
 export class LambdaMooFileSystem implements vscode.FileSystemProvider {
+  private readonly outputChannel = vscode.window.createOutputChannel("LambdaMOO Remote Files", { log: true });
   private readonly changes = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
   private readonly etags = new Map<string, string>();
   private readonly sessions = new Map<string, AdapterSession>();
@@ -252,7 +261,24 @@ export class LambdaMooFileSystem implements vscode.FileSystemProvider {
   });
   public readonly onDidChangeFile = this.changes.event;
 
-  public constructor(private readonly secrets: vscode.SecretStorage) {}
+  public constructor(private readonly secrets: vscode.SecretStorage) { }
+
+  private log(message: string, details?: unknown): void {
+    const suffix = details === undefined ? "" : ` ${formatLogDetails(details)}`;
+    this.outputChannel.info(`${message}${suffix}`);
+  }
+
+  private logError(message: string, error: unknown): void {
+    const webDavError = error as WebDAVClientError & {
+      response?: { data?: unknown; headers?: unknown; status?: unknown; statusText?: unknown };
+    };
+    this.outputChannel.error(`${message} ${formatLogDetails({
+      name: error instanceof Error ? error.name : undefined,
+      message: error instanceof Error ? error.message : String(error),
+      status: webDavError.status,
+      response: webDavError.response,
+    })}`);
+  }
 
   private async profile(authority: string): Promise<ConnectionProfile> {
     const existing = profiles().find((profile) => profile.authority === authority);
@@ -352,6 +378,7 @@ export class LambdaMooFileSystem implements vscode.FileSystemProvider {
     try {
       return await operation(this.sessionAdapter(profile, password), path);
     } catch (error) {
+      this.logError(`WebDAV request failed for ${uri.toString()} (${path}).`, error);
       const status = (error as WebDAVClientError).status;
       if (status === 401 && profile.username) {
         const replacement = await vscode.window.showInputBox({
@@ -368,6 +395,7 @@ export class LambdaMooFileSystem implements vscode.FileSystemProvider {
             this.sessionAdapter(profile, replacement);
             return result;
           } catch (retryError) {
+            this.logError(`WebDAV retry failed for ${uri.toString()} (${path}).`, retryError);
             error = retryError;
           }
         }
@@ -531,6 +559,15 @@ export class LambdaMooFileSystem implements vscode.FileSystemProvider {
       throw vscode.FileSystemError.FileNotFound(uri);
     }
     const etag = this.etags.get(uri.toString());
+    this.log("Saving remote file.", {
+      uri: uri.toString(),
+      path: this.requestIdentity(uri).path,
+      bytes: content.byteLength,
+      exists,
+      create: options.create,
+      overwrite: options.overwrite,
+      etag,
+    });
     const written = await this.call(
       uri,
       (adapter, path) => adapter.writeFile(path, content, options.overwrite, etag),
@@ -542,8 +579,10 @@ export class LambdaMooFileSystem implements vscode.FileSystemProvider {
       }),
     );
     if (!written) {
+      this.log("WebDAV save returned false.", { uri: uri.toString() });
       throw vscode.FileSystemError.FileExists(uri);
     }
+    this.log("Saved remote file.", { uri: uri.toString() });
     this.invalidateReadCaches(uri.authority);
     this.etags.delete(uri.toString());
     this.changes.fire([{ type: exists ? vscode.FileChangeType.Changed : vscode.FileChangeType.Created, uri }]);
@@ -610,6 +649,7 @@ export class LambdaMooFileSystem implements vscode.FileSystemProvider {
     this.clearReadCaches();
     this.generations.clear();
     this.changes.dispose();
+    this.outputChannel.dispose();
   }
 }
 
