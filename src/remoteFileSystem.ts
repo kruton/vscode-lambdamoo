@@ -12,6 +12,7 @@ import {
   classifyPreconditionFailure,
   invalidateKeys,
   isEditorMetadataPath,
+  normalizeEtag,
   PreconditionContext,
   verbDefinitionPaths,
 } from "./remoteFileSystemLogic";
@@ -109,7 +110,7 @@ class WebDavAdapter implements RemoteAdapter {
     return {
       status: 200,
       contents: new Uint8Array(response.data),
-      etag: responseEtag,
+      etag: normalizeEtag(responseEtag),
     };
   }
 
@@ -476,7 +477,7 @@ export class LambdaMooFileSystem implements vscode.FileSystemProvider {
         }
         value = {
           contents: response.contents,
-          etag: response.etag ?? this.stats.peek(identity.key)?.etag ?? undefined,
+          etag: response.etag ?? normalizeEtag(this.stats.peek(identity.key)?.etag),
         };
       }
       if (generation === this.generation(identity.authority)) {

@@ -6,8 +6,17 @@ import {
   classifyPreconditionFailure,
   invalidateKeys,
   isEditorMetadataPath,
+  normalizeEtag,
   verbDefinitionPaths,
 } from "../../src/remoteFileSystemLogic";
+
+test("normalizes WebDAV ETags for conditional requests", () => {
+  assert.equal(normalizeEtag("content-hash"), '"content-hash"');
+  assert.equal(normalizeEtag('"content-hash"'), '"content-hash"');
+  assert.equal(normalizeEtag("W/content-hash"), 'W/"content-hash"');
+  assert.equal(normalizeEtag('W/"content-hash"'), 'W/"content-hash"');
+  assert.equal(normalizeEtag(null), undefined);
+});
 
 test("caches values until expiry and retains expired values for revalidation", () => {
   let now = 100;
