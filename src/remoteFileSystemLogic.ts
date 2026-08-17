@@ -42,8 +42,26 @@ export interface VerbDefinitionPaths {
   readonly resolutionPath: string;
 }
 
+const localWorkspaceDirectories = [
+  "/.agents",
+  "/.claude",
+  "/.devcontainer",
+  "/.git",
+  "/.github",
+  "/.vscode",
+  "/app",
+  "/node_modules",
+];
+
+const localWorkspaceFiles = new Set([
+  "/.devcontainer.json",
+  "/.mcp.json",
+  "/pom.xml",
+]);
+
 export function isEditorMetadataPath(path: string): boolean {
-  return path === "/.vscode" || path.startsWith("/.vscode/");
+  return localWorkspaceFiles.has(path)
+    || localWorkspaceDirectories.some((directory) => path === directory || path.startsWith(`${directory}/`));
 }
 
 export function canonicalObjectPath(path: string): string | undefined {
