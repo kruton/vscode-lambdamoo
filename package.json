@@ -206,7 +206,7 @@
     "test:extension": "node .test-out/test/runTest.js"
   },
   "dependencies": {
-    "@kruton/moo-lsp": "^0.2.12",
+    "@kruton/moo-lsp": "^0.3.0",
     "vscode-languageclient": "^10.1.0",
     "vscode-jsonrpc": "^9.0.1",
     "webdav": "^5.10.0"
