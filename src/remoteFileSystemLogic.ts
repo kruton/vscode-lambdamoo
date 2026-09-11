@@ -37,11 +37,6 @@ export function invalidateKeys<T>(values: Map<string, T>, ...keys: string[]): vo
   }
 }
 
-export interface VerbDefinitionPaths {
-  readonly verbName: string;
-  readonly resolutionPath: string;
-}
-
 const localWorkspaceDirectories = [
   "/.agents",
   "/.claude",
@@ -70,16 +65,4 @@ export function canonicalObjectPath(path: string): string | undefined {
     return undefined;
   }
   return `/object/${match[1]}${match[2] ?? ""}`;
-}
-
-export function verbDefinitionPaths(path: string): VerbDefinitionPaths | undefined {
-  const match = /^(.*)\/verb\/([^/]+)$/.exec(path);
-  if (!match) {
-    return undefined;
-  }
-  const [, objectPath, verbName] = match;
-  return {
-    verbName,
-    resolutionPath: `${objectPath}/resolve/verb/${verbName}/defined-on`,
-  };
 }

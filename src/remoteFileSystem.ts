@@ -14,7 +14,6 @@ import {
   isEditorMetadataPath,
   normalizeEtag,
   PreconditionContext,
-  verbDefinitionPaths,
 } from "./remoteFileSystemLogic";
 
 const scheme = "moo";
@@ -521,22 +520,6 @@ export class LambdaMooFileSystem implements vscode.FileSystemProvider {
     return result.slice();
   }
 
-  public async resolveVerbDefinition(uri: vscode.Uri): Promise<vscode.Uri> {
-    if (uri.scheme !== scheme) {
-      return uri;
-    }
-    const paths = verbDefinitionPaths(uri.path);
-    if (!paths) {
-      return uri;
-    }
-    const contents = await this.readFile(uri.with({ path: paths.resolutionPath }));
-    const definedOn = /^#(-?\d+)\s*$/.exec(new TextDecoder().decode(contents));
-    if (!definedOn) {
-      return uri;
-    }
-    return uri.with({ path: `/object/${definedOn[1]}/verb/${paths.verbName}` });
-  }
-
   public async writeFile(
     uri: vscode.Uri,
     content: Uint8Array,
@@ -806,27 +789,6 @@ export function registerRemoteFileSystem(context: vscode.ExtensionContext): Lamb
     vscode.workspace.onDidOpenTextDocument((document) => {
       if (document.uri.scheme === scheme && document.languageId !== "lambdamoo") {
         void vscode.languages.setTextDocumentLanguage(document, "lambdamoo");
-      }
-    }),
-    vscode.window.onDidChangeActiveTextEditor(async (editor) => {
-      if (!editor || editor.document.uri.scheme !== scheme) {
-        return;
-      }
-      const path = canonicalObjectPath(editor.document.uri.path);
-      if (!path) {
-        return;
-      }
-      const ownedUri = editor.document.uri;
-      await vscode.window.showTextDocument(ownedUri.with({ path }), {
-        preview: true,
-        viewColumn: editor.viewColumn,
-      });
-      const ownedTabs = vscode.window.tabGroups.all.flatMap((group) => group.tabs).filter(
-        (tab) => tab.input instanceof vscode.TabInputText
-          && tab.input.uri.toString() === ownedUri.toString(),
-      );
-      if (ownedTabs.length > 0) {
-        await vscode.window.tabGroups.close(ownedTabs);
       }
     }),
   );

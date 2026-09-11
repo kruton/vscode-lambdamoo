@@ -7,7 +7,10 @@ import {
 import { registerCommentCommands } from "./comments";
 import { createInProcessServer } from "./inProcessLsp";
 import { registerRemoteFileSystem } from "./remoteFileSystem";
-import { resolveDefinitionResult } from "./remoteNavigation";
+import {
+  registerRemoteDocumentProtocol,
+  remoteDocumentInitializationOptions,
+} from "./remoteLsp";
 
 let client: LanguageClient | undefined;
 
@@ -34,12 +37,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     synchronize: {
       fileEvents: vscode.workspace.createFileSystemWatcher("**/*.moo"),
     },
-    middleware: {
-      provideDefinition: async (document, position, token, next) => resolveDefinitionResult(
-        remoteFileSystem,
-        await next(document, position, token),
-      ),
-    },
+    initializationOptions: remoteDocumentInitializationOptions,
   };
 
   client = new LanguageClient(
@@ -48,6 +46,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     serverOptions,
     clientOptions,
   );
+  registerRemoteDocumentProtocol(context, client, remoteFileSystem);
   await client.start();
 }
 

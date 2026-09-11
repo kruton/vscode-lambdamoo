@@ -7,7 +7,6 @@ import {
   invalidateKeys,
   isEditorMetadataPath,
   normalizeEtag,
-  verbDefinitionPaths,
 } from "../../src/remoteFileSystemLogic";
 
 test("normalizes WebDAV ETags for conditional requests", () => {
@@ -157,19 +156,4 @@ test("invalidates only the requested ETag keys", () => {
   invalidateKeys(etags, "destination");
   assert.equal(etags.get("source"), '"source-etag"');
   assert.equal(etags.has("destination"), false);
-});
-
-test("builds inherited verb resolution paths after property traversal", () => {
-  assert.deepEqual(
-    verbDefinitionPaths("/object/0/property/local/object/property/webdav/object/verb/name"),
-    {
-      verbName: "name",
-      resolutionPath: "/object/0/property/local/object/property/webdav/object/resolve/verb/name/defined-on",
-    },
-  );
-  assert.deepEqual(verbDefinitionPaths("/object/494/verb/read_bytes"), {
-    verbName: "read_bytes",
-    resolutionPath: "/object/494/resolve/verb/read_bytes/defined-on",
-  });
-  assert.equal(verbDefinitionPaths("/object/0/property/local"), undefined);
 });
