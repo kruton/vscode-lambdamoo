@@ -207,7 +207,7 @@
   },
   "dependencies": {
     "@kruton/moo-lsp": "^0.3.0",
-    "vscode-languageclient": "^11.0.0",
+    "vscode-languageclient": "^12.0.0",
     "vscode-jsonrpc": "^10.0.0",
     "webdav": "^5.10.0"
   },
